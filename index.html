@@ -1,58 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Socket.IO chat</title>
-  <style>
-      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
-      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
-      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
-      #input:focus { outline: none; }
-      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
-
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages > li { padding: 0.5rem 1rem; }
-      #messages > li:nth-child(odd) { background: #efefef; }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>غرف تعارف اليمن - ملاذ العرب</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--grad:linear-gradient(135deg,#8e2de2,#4a00e0);--bg:#141414;--panel:#1f1f1f;--border:#2d2d2d;--gold:#ffbd59;--king:#e74c3c;--mod:#2ecc71}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif}
+body{background:var(--bg);color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#login-screen{position:fixed;inset:0;background:radial-gradient(circle,#240b36,#141414);z-index:1000;display:flex;align-items:center;justify-content:center;padding:15px}
+.login-box{background:var(--panel);padding:30px;border-radius:16px;width:100%;max-width:400px;text-align:center;border:1px solid #4a00e0;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+.m-input{width:100%;background:#2a2a2a;border:1px solid var(--border);border-radius:25px;padding:12px;color:#fff;outline:none;margin-bottom:12px;text-align:center}
+.gender-selector{display:flex;gap:10px;margin-bottom:15px}
+.gender-btn{flex:1;padding:10px;border-radius:20px;border:1px solid var(--border);background:#252525;color:#aaa;cursor:pointer}
+.gender-btn.active.male{background:#3498db;color:#fff} .gender-btn.active.female{background:#e84393;color:#fff}
+.chat-header{background:var(--grad);padding:10px 15px;display:flex;justify-content:space-between;align-items:center}
+.chat-container{display:flex;flex:1;overflow:hidden}
+.sidebar{width:280px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-tabs{display:flex;background:#181818}
+.tab-btn{flex:1;padding:12px;background:none;border:none;color:#888;cursor:pointer;font-weight:700}
+.tab-btn.active{color:#8e2de2;border-bottom:3px solid #8e2de2}
+.sidebar-content{flex:1;overflow-y:auto;padding:10px}
+.room-item,.user-item{display:flex;gap:10px;padding:10px;background:#252525;border-radius:8px;margin-bottom:8px;cursor:pointer;border-right:4px solid transparent}
+.room-item.active{background:rgba(142,45,226,.15);border-right-color:#8e2de2}
+.main-chat{flex:1;display:flex;flex-direction:column;background:#161616}
+.room-title-bar{background:var(--panel);padding:10px 15px;color:var(--gold);font-weight:700;border-bottom:1px solid var(--border)}
+.messages-area{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:10px}
+.msg-box{max-width:80%;animation:fade .3s}
+.msg-box.me{align-self:flex-end}
+.msg-box.system{align-self:center;background:rgba(255,255,255,.05);padding:5px 15px;border-radius:20px;font-size:12px;border:1px dashed var(--border)}
+.msg-meta{font-size:12px;font-weight:700;margin-bottom:2px}
+.msg-bubble{background:#222;padding:10px 14px;border-radius:0 12px 12px 12px;border:1px solid var(--border);word-break:break-word}
+.me .msg-bubble{background:rgba(142,45,226,.15);border-color:#8e2de2;border-radius:12px 0 12px 12px}
+.role-ملك{color:var(--king)} .role-مستشار{color:#f39c12} .role-مشرف{color:var(--mod)} .role-عضو{color:#3498db}
+.input-area{background:var(--panel);padding:10px;display:flex;gap:8px;border-top:1px solid var(--border)}
+.main-text-input{flex:1;background:#262626;border:1px solid var(--border);border-radius:25px;padding:10px 15px;color:#fff;outline:none}
+.action-btn{background:var(--grad);border:none;color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer}
+.youtube-panel{background:#1a1a1a;border-top:1px solid var(--border);padding:10px;display:none}
+.admin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center}
+.modal-card{background:var(--panel);padding:20px;border-radius:12px;width:90%;max-width:340px;text-align:center;border:1px solid #444}
+.ctrl-btn{display:block;width:100%;padding:10px;margin:8px 0;border:none;border-radius:20px;color:#fff;cursor:pointer;font-weight:700}
+</style>
 </head>
 <body>
-  <ul id="messages"></ul>
-  <form id="form" action="">
-    <input id="input" autocomplete="off" /><button>Send</button>
-  </form>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    let counter = 0;
+<div id="login-screen">
+<div class="login-box">
+<h2 style="background:linear-gradient(to left,#ffbd59,#8e2de2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px">غرف تعارف اليمن</h2>
+<input id="username" class="m-input" placeholder="اسمك المستعار">
+<div class="gender-selector">
+<button class="gender-btn male active" onclick="selG('male')"><i class="fa-solid fa-mars"></i> شاب</button>
+<button class="gender-btn female" onclick="selG('female')"><i class="fa-solid fa-venus"></i> بنت</button>
+</div>
+<button class="ctrl-btn" style="background:var(--grad)" onclick="enter()">دخول الدردشة</button>
+</div>
+</div>
 
-    const socket = io({
-      auth: {
-        serverOffset: 0
-      },
-      ackTimeout: 10000,
-      retries: 3,
-    });
+<div class="chat-header">
+<div><i class="fa fa-crown" style="color:var(--gold)"></i> <span id="roomTitle">العام</span></div>
+<div><span id="onlineCount">0</span> متصل <button onclick="toggleYT()"><i class="fa fa-youtube"></i></button> <button onclick="openAdmin()"><i class="fa fa-gear"></i></button></div>
+</div>
 
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
+<div class="chat-container">
+<div class="sidebar">
+<div class="sidebar-tabs">
+<button class="tab-btn active" onclick="switchTab('rooms')">الغرف</button>
+<button class="tab-btn" onclick="switchTab('users')">المتواجدين</button>
+</div>
+<div class="sidebar-content" id="roomsList">
+<div class="room-item active" onclick="joinRoom('العام')"><i class="fa fa-comments"></i> العام</div>
+<div class="room-item" onclick="joinRoom('صنعاء')"><i class="fa fa-location-dot"></i> صنعاء</div>
+<div class="room-item" onclick="joinRoom('عدن')"><i class="fa fa-location-dot"></i> عدن</div>
+<div class="room-item" onclick="joinRoom('تعارف')"><i class="fa fa-heart"></i> تعارف بنات</div>
+</div>
+<div class="sidebar-content" id="usersList" style="display:none"></div>
+</div>
+<div class="main-chat">
+<div class="youtube-panel" id="ytPanel">
+<input id="ytLink" class="m-input" placeholder="رابط يوتيوب و اضغط تشغيل">
+<button class="ctrl-btn" style="background:#c00" onclick="playYT()">تشغيل للجميع</button>
+<div id="ytPlayer"></div>
+</div>
+<div class="room-title-bar"><i class="fa fa-hashtag"></i> غرفة <span id="roomNameBar">العام</span></div>
+<div class="messages-area" id="messages"></div>
+<div class="input-area">
+<input id="msgInput" class="main-text-input" placeholder="اكتب رسالتك...">
+<button class="action-btn" onclick="send()"><i class="fa fa-paper-plane"></i></button>
+</div>
+</div>
+</div>
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (input.value) {
-        const clientOffset = `${socket.id}-${counter++}`;
-        socket.emit('chat message', input.value, clientOffset);
-        input.value = '';
-      }
-    });
+<div class="admin-modal" id="adminModal">
+<div class="modal-card">
+<h3>لوحة تحكم الملك</h3>
+<button class="ctrl-btn" style="background:#2ecc71" onclick="adminAction('clear')">مسح الشات</button>
+<button class="ctrl-btn" style="background:#e74c3c" onclick="adminAction('mute')">اسكات الجميع</button>
+<button class="ctrl-btn" style="background:#3498db" onclick="adminAction('unmute')">فك الاسكات</button>
+<button class="ctrl-btn" style="background:#555" onclick="closeAdmin()">إغلاق</button>
+</div>
+</div>
 
-    socket.on('chat message', (msg, serverOffset) => {
-      const item = document.createElement('li');
-      item.textContent = msg;
-      messages.appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
-      socket.auth.serverOffset = serverOffset;
-    });
-  </script>
+<audio id="notifSound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c2a7d4.mp3"></audio>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket=io(); let gender='male', room='العام', myName='', myRole='عضو';
+function selG(g){gender=g; document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('active')); document.querySelector('.'+g).classList.add('active')}
+function enter(){ myName=document.getElementById('username').value.trim(); if(!myName) return alert('اكتب اسمك'); if(myName=='احمد' || myName.toLowerCase()=='ahmed') myRole='ملك'; document.getElementById('login-screen').style.display='none'; socket.emit('join',{name:myName,gender,room,role:myRole}); }
+function joinRoom(r){ room=r; document.getElementById('roomTitle').innerText=r; document.getElementById('roomNameBar').innerText=r; document.querySelectorAll('.room-item').forEach(el=>el.classList.remove('active')); event.currentTarget.classList.add('active'); document.getElementById('messages').innerHTML=''; socket.emit('joinRoom',r); }
+function switchTab(t){ document.getElementById('roomsList').style.display=t=='rooms'?'block':'none'; document.getElementById('usersList').style.display=t=='users'?'block':'none'; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+function send(){ const inp=document.getElementById('msgInput'); if(!inp.value) return; socket.emit('chat message',{text:inp.value,room}); inp.value=''; }
+document.getElementById('msgInput').addEventListener('keypress',e=>{ if(e.key==='Enter') send(); });
+socket.on('chat message',d=>{
+  const area=document.getElementById('messages'); const div=document.createElement('div');
+  if(d.system){ div.className='msg-box system'; div.innerText=d.text; }
+  else { div.className='msg-box'+(d.name==myName?' me':''); div.innerHTML=`<div class="msg-meta role-${d.role}">${d.role} ${d.name}</div><div class="msg-bubble">${d.text}</div>`; document.getElementById('notifSound').play().catch(()=>{}); }
+  area.appendChild(div); area.scrollTop=area.scrollHeight;
+});
+socket.on('users',list=>{ document.getElementById('usersList').innerHTML=list.map(u=>`<div class="user-item"><div>${u.name} <small class="role-${u.role}">(${u.role})</small></div></div>`).join(''); document.getElementById('onlineCount').innerText=list.length; });
+socket.on('yt play',link=>{ document.getElementById('ytPanel').style.display='block'; document.getElementById('ytPlayer').innerHTML=`<iframe width="100%" height="180" src="https://www.youtube.com/embed/${link.split('v=')[1]?.split('&')[0]||link}" frameborder="0" allowfullscreen></iframe>`; });
+function toggleYT(){ const p=document.getElementById('ytPanel'); p.style.display=p.style.display=='none'?'block':'none'; }
+function playYT(){ const l=document.getElementById('ytLink').value; if(l) socket.emit('yt play',l); }
+function openAdmin(){ if(myRole!=='ملك') return alert('فقط الملك'); document.getElementById('adminModal').style.display='flex'; }
+function closeAdmin(){ document.getElementById('adminModal').style.display='none'; }
+function adminAction(a){ socket.emit('admin',a); closeAdmin(); }
+</script>
 </body>
 </html>
